@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { View, TouchableOpacity, Text, Picker } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
+import {Picker} from '@react-native-picker/picker';
 import RBSheet from "react-native-raw-bottom-sheet";
 import styles from "./styles";
 
@@ -11,14 +12,15 @@ class TimePicker extends Component {
     this.state = { selectedHour, selectedMinute };
   }
 
-  componentWillReceiveProps(nextProps) {
+  static getDerivedStateFromProps(nextProps, prevState) {
     const { selectedHour, selectedMinute } = nextProps;
     if (
-      selectedHour !== this.state.selectedHour ||
-      selectedMinute !== this.state.selectedMinute
+      selectedHour !== prevState.selectedHour ||
+      selectedMinute !== prevState.selectedMinute
     ) {
-      this.setState({ selectedHour, selectedMinute });
+      return { selectedHour, selectedMinute };
     }
+    return {};
   }
 
   getHourItems = () => {
