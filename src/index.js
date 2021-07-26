@@ -12,6 +12,8 @@ class TimePicker extends Component {
     this.state = { selectedHour, selectedMinute, selectedSecond };
   }
 
+  // Removed
+  /*
   static getDerivedStateFromProps(nextProps, prevState) {
     const { selectedHour, selectedMinute, selectedSecond } = nextProps;
     if (
@@ -23,6 +25,7 @@ class TimePicker extends Component {
     }
     return {};
   }
+  */
 
   getHourItems = () => {
     const items = [];
