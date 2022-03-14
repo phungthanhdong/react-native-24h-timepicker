@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { View, TouchableOpacity, Text } from "react-native";
+import { DateTime } from "luxon";
 import {Picker} from '@react-native-picker/picker';
 import RBSheet from "react-native-raw-bottom-sheet";
 import styles from "./styles";
@@ -9,7 +10,7 @@ class TimePicker extends Component {
   constructor(props) {
     super(props);
     const { selectedHour, selectedMinute, selectedSecond } = props;
-    this.state = { selectedHour, selectedMinute, selectedSecond };
+    this.state = {selectedHourIndex: 0, selectedHour, selectedMinute, selectedSecond };
   }
 
   // Removed
@@ -29,15 +30,44 @@ class TimePicker extends Component {
 
   getHourItems = () => {
     const items = [];
-    const { maxHour, hourInterval, hourUnit } = this.props;
-    const interval = maxHour / hourInterval;
-    for (let i = 0; i <= interval; i++) {
-      const value = `${i * hourInterval}`;
+    const { maxHour, hourInterval, hourUnit, datetime } = this.props;
+    // const interval = maxHour / hourInterval;
+    // for (let i = 0; i <= interval; i++) {
+    //   const value = `${i * hourInterval}`;
+    //   const item = (
+    //     <Picker.Item key={value} value={value} label={value + hourUnit} />
+    //   );
+    //   items.push(item);
+    // }
+    // dongpt: Adding DST
+    if (!DateTime.isDateTime(datetime)) {
+      __DEV__ &&
+        console.log(
+          'GOND Warning TimePicker datetime is not a valid Luxon object'
+        );
+      return items;
+    }
+    
+    const selectedDate = datetime.toFormat('yyyyMMdd');
+    let hourIterator = datetime.startOf('day');
+    let currentDate = hourIterator.toFormat('yyyyMMdd');
+    
+    do {
+      const value = hourIterator.toFormat('HH');
       const item = (
         <Picker.Item key={value} value={value} label={value + hourUnit} />
       );
       items.push(item);
-    }
+      hourIterator = hourIterator.plus({hour: 1});
+      currentDate = hourIterator.toFormat('yyyyMMdd');
+      __DEV__ &&
+        console.log(
+          'GOND TimeRuler constructArrayOfHours',
+          currentDate,
+          hourIterator
+        );
+    } while (currentDate == selectedDate);
+
     return items;
   };
 
@@ -79,8 +109,8 @@ class TimePicker extends Component {
     return items;
   };
 
-  onValueChange = (selectedHour, selectedMinute, selectedSecond) => {
-    this.setState({ selectedHour, selectedMinute, selectedSecond });
+  onValueChange = (selectedHourIndex, selectedHour, selectedMinute, selectedSecond) => {
+    this.setState({selectedHourIndex, selectedHour, selectedMinute, selectedSecond });
   };
 
   onCancel = () => {
@@ -92,8 +122,8 @@ class TimePicker extends Component {
 
   onConfirm = () => {
     if (typeof this.props.onConfirm === "function") {
-      const { selectedHour, selectedMinute, selectedSecond } = this.state;
-      this.props.onConfirm(selectedHour, selectedMinute, selectedSecond);
+      const {selectedHourIndex, selectedHour, selectedMinute, selectedSecond } = this.state;
+      this.props.onConfirm(selectedHourIndex, selectedHour, selectedMinute, selectedSecond);
     }
   };
 
@@ -122,7 +152,7 @@ class TimePicker extends Component {
   };
 
   renderBody = () => {
-    const { selectedHour, selectedMinute, selectedSecond } = this.state;
+    const {selectedHourIndex, selectedHour, selectedMinute, selectedSecond } = this.state;
     const {showSecond} = this.props;
     return (
       <View style={styles.body}>
@@ -130,8 +160,8 @@ class TimePicker extends Component {
           selectedValue={selectedHour}
           style={styles.picker}
           itemStyle={this.props.itemStyle}
-          onValueChange={itemValue =>
-            this.onValueChange(itemValue, selectedMinute, selectedSecond)
+          onValueChange={(itemValue, itemIndex) =>
+            this.onValueChange(itemIndex, itemValue, selectedMinute, selectedSecond)
           }
         >
           {this.getHourItems()}
@@ -142,7 +172,7 @@ class TimePicker extends Component {
           style={styles.picker}
           itemStyle={this.props.itemStyle}
           onValueChange={itemValue =>
-            this.onValueChange(selectedHour, itemValue, selectedSecond)
+            this.onValueChange(selectedHourIndex, selectedHour, itemValue, selectedSecond)
           }
         >
           {this.getMinuteItems()}
@@ -154,7 +184,7 @@ class TimePicker extends Component {
             style={styles.picker}
             itemStyle={this.props.itemStyle}
             onValueChange={itemValue =>
-              this.onValueChange(selectedHour, selectedMinute, itemValue)
+              this.onValueChange(selectedHourIndex, selectedHour, selectedMinute, itemValue)
             }
           >
             {this.getSecondItems()}
@@ -215,7 +245,10 @@ TimePicker.defaultProps = {
   selectedSecond: "00",
   itemStyle: {},
   textCancel: "Cancel",
-  textConfirm: "Done"
+  textConfirm: "Done",
+  datetime: DateTime.now(),
+  onCancel: () => console.log('24h TimePicker: onCancel not set!'),
+  onConfirm: () => console.log('24h TimePicker: onConfirm not set!'),
 };
 
 export default TimePicker;

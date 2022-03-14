@@ -26,7 +26,8 @@
   "homepage": "https://github.com/NYSamnang/react-native-24h-timepicker#readme",
   "dependencies": {
     "react-native-raw-bottom-sheet": "^1.0.0",
-    "@react-native-picker/picker": "^1.16.0"
+    "@react-native-picker/picker": "^1.16.0",
+	"luxon": "^1.27.0",
   },
   "devDependencies": {
     "prop-types": "^15.7.2"
