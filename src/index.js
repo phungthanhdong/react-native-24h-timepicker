@@ -9,8 +9,18 @@ import styles from "./styles";
 class TimePicker extends Component {
   constructor(props) {
     super(props);
-    const { selectedHour, selectedMinute, selectedSecond } = props;
-    this.state = {selectedHourIndex: 0, selectedHour, selectedMinute, selectedSecond };
+    __DEV__ &&
+        console.log(
+          'GOND Warning TimePicker: ', props.selectedTime
+        );
+
+    this.state = {
+      selectedHourIndex: 0,
+      selectedHour: 0,
+      selectedMinute: 0,
+      selectedSecond: 0,
+      hourItems: []
+    };
   }
 
   // Removed
@@ -60,12 +70,12 @@ class TimePicker extends Component {
       items.push(item);
       hourIterator = hourIterator.plus({hour: 1});
       currentDate = hourIterator.toFormat('yyyyMMdd');
-      __DEV__ &&
-        console.log(
-          'GOND TimeRuler constructArrayOfHours',
-          currentDate,
-          hourIterator
-        );
+      // __DEV__ &&
+      //   console.log(
+      //     'GOND TimeRuler constructArrayOfHours',
+      //     currentDate,
+      //     hourIterator
+      //   );
     } while (currentDate == selectedDate);
 
     return items;
@@ -132,7 +142,25 @@ class TimePicker extends Component {
   };
 
   open = () => {
-    this.RBSheet.open();
+    const {hour, minute, second} = this.props.selectedTime ?? {
+      hour: 0,
+      minute: 0,
+      second: 0,
+    };
+    const hourItems = this.getHourItems();
+    const selectedHourIndex = hourItems.findIndex(h => h == hour);
+    __DEV__ &&
+      console.log(
+        'GOND TimePicker onOpen: ', hour, minute, second
+      );
+
+    this.setState({
+      selectedHourIndex,
+      selectedHour: hour,
+      selectedMinute: minute,
+      selectedSecond: second,
+      hourItems
+    }, () => this.RBSheet.open());
   };
 
   renderHeader = () => {
@@ -152,7 +180,12 @@ class TimePicker extends Component {
   };
 
   renderBody = () => {
-    const {selectedHourIndex, selectedHour, selectedMinute, selectedSecond } = this.state;
+    const {selectedHourIndex, selectedHour, selectedMinute, selectedSecond, hourItems } = this.state;
+    __DEV__ &&
+        console.log(
+          'GOND TimePicker selected: ', selectedHour, selectedMinute, selectedSecond
+        );
+
     const {showSecond} = this.props;
     return (
       <View style={styles.body}>
@@ -164,7 +197,8 @@ class TimePicker extends Component {
             this.onValueChange(itemIndex, itemValue, selectedMinute, selectedSecond)
           }
         >
-          {this.getHourItems()}
+          {/* {this.getHourItems()} */}
+          {hourItems}
         </Picker>
         <Text style={styles.separator}>:</Text>
         <Picker
